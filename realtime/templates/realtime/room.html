@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>🛒 Shopping Together - Room: {{ room_name }}</h4>
+                    <div class="btn-group">
+                        <button id="shareScreenBtn" class="btn btn-primary">📺 Share Screen</button>
+                        <button id="toggleCameraBtn" class="btn btn-secondary">📹 Camera</button>
+                        <button id="stopBtn" class="btn btn-danger">⏹ Stop</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Friend's Screen</h5>
+                            <video id="remoteVideo" autoplay playsinline style="width:100%; height:300px; background:#000;"></video>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Your Screen</h5>
+                            <video id="localVideo" autoplay muted playsinline style="width:100%; height:300px; background:#000;"></video>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>💬 Chat</h5>
+                </div>
+                <div class="card-body">
+                    <div id="chatLog" style="height:400px; overflow-y:scroll; border:1px solid #ddd; padding:10px; margin-bottom:10px;">
+                    </div>
+                    <form id="chatForm">
+                        <div class="input-group">
+                            <input type="text" id="chatInput" class="form-control" placeholder="Type message...">
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const roomName = '{{ room_name }}';
+const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/room/' + roomName + '/');
+
+const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+let localStream = null;
+let peerConnection = null;
+
+const localVideo = document.getElementById('localVideo');
+const remoteVideo = document.getElementById('remoteVideo');
+
+function initPeerConnection() {
+    peerConnection = new RTCPeerConnection(rtcConfig);
+    
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+            chatSocket.send(JSON.stringify({
+                type: 'signal',
+                candidate: event.candidate
+            }));
+        }
+    };
+    
+    peerConnection.ontrack = (event) => {
+        remoteVideo.srcObject = event.streams[0];
+    };
+}
+
+chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    
+    if (data.type === 'signal') {
+        handleSignal(data);
+    } else if (data.type === 'chat') {
+        displayChat(data.user, data.text);
+    }
+};
+
+async function handleSignal(data) {
+    if (!peerConnection) initPeerConnection();
+    
+    if (data.offer) {
+        await peerConnection.setRemoteDescription(data.offer);
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        chatSocket.send(JSON.stringify({type: 'signal', answer: answer}));
+    } else if (data.answer) {
+        await peerConnection.setRemoteDescription(data.answer);
+    } else if (data.candidate) {
+        await peerConnection.addIceCandidate(data.candidate);
+    }
+}
+
+document.getElementById('shareScreenBtn').onclick = async () => {
+    try {
+        localStream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: true});
+        localVideo.srcObject = localStream;
+        
+        if (!peerConnection) initPeerConnection();
+        
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+        });
+        
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        chatSocket.send(JSON.stringify({type: 'signal', offer: offer}));
+    } catch (error) {
+        alert('Screen sharing failed!');
+    }
+};
+
+document.getElementById('stopBtn').onclick = () => {
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localVideo.srcObject = null;
+    }
+};
+
+document.getElementById('chatForm').onsubmit = (e) => {
+    e.preventDefault();
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (message) {
+        chatSocket.send(JSON.stringify({type: 'chat', text: message}));
+        input.value = '';
+    }
+};
+
+function displayChat(user, text) {
+    const chatLog = document.getElementById('chatLog');
+    const div = document.createElement('div');
+    div.innerHTML = `<strong>${user}:</strong> ${text}<br><small>${new Date().toLocaleTimeString()}</small><hr>`;
+    chatLog.appendChild(div);
+    chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+initPeerConnection();
+</script>
+{% endblock %}

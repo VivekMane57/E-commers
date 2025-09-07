@@ -1,0 +1,46 @@
+<!-- templates/includes/dashboard_sidebar.html -->
+<aside class="col-md-3">
+    <!-- SIDEBAR -->
+    <ul class="list-group">
+        <!-- Dashboard Link -->
+        <li class="list-group-item {% if request.path == '/accounts/dashboard/' %}active{% endif %}">
+            <a href="{% url 'accounts:dashboard' %}" class="text-decoration-none">
+                <i class="fa fa-home"></i> Dashboard
+            </a>
+        </li>
+
+        <!-- My Orders Link -->
+        <li class="list-group-item {% if '/accounts/my_orders/' in request.path %}active{% endif %}">
+            <a href="{% url 'accounts:my_orders' %}" class="text-decoration-none">
+                <i class="fa fa-shopping-bag"></i> My Orders
+            </a>
+        </li>
+
+        <!-- Edit Profile Link -->
+        <li class="list-group-item {% if '/accounts/edit_profile/' in request.path %}active{% endif %}">
+            <a href="{% url 'accounts:edit_profile' %}" class="text-decoration-none">
+                <i class="fa fa-user-edit"></i> Edit Profile
+            </a>
+        </li>
+
+        <!-- Change Password Link -->
+        <li class="list-group-item {% if '/accounts/change_password/' in request.path %}active{% endif %}">
+            <a href="{% url 'accounts:change_password' %}" class="text-decoration-none">
+                <i class="fa fa-key"></i> Change Password
+            </a>
+        </li>
+    </ul>
+    
+    <br>
+    
+    <!-- Additional Actions -->
+    <a class="btn btn-outline-primary btn-block mb-2" href="{% url 'store' %}">
+        <i class="fa fa-store"></i> Continue Shopping
+    </a>
+    
+    <!-- Logout Button -->
+    <a class="btn btn-danger btn-block" href="{% url 'accounts:logout' %}">
+        <i class="fa fa-power-off"></i> Log out
+    </a>
+    <!-- SIDEBAR .//END -->
+</aside>

@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuyTogether - Live Shopping Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #06b6d4;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-container {
+            padding: 2rem 0;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 25px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 3rem;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="%23ffffff"></path></svg>') no-repeat bottom;
+            background-size: cover;
+        }
+
+        .start-shopping-btn {
+            background: linear-gradient(45deg, var(--success), var(--secondary));
+            border: none;
+            padding: 18px 45px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); 
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); 
+                transform: scale(1.05);
+            }
+        }
+
+        .start-shopping-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+            color: white;
+        }
+
+        .start-shopping-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .start-shopping-btn:hover::before {
+            left: 100%;
+        }
+
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-left: 15px;
+            border: 2px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2.5rem;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-15px) rotate(2deg);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+            border-color: rgba(79, 70, 229, 0.3);
+        }
+
+        .feature-icon {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            border-radius: 50%;
+            opacity: 0.2;
+            transform: scale(1.5);
+            animation: ripple 3s infinite;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .feature-icon.chat { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .feature-icon.voice { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .feature-icon.share { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .feature-icon.group { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+
+        .stats-card {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+        }
+
+        .stats-number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-label {
+            color: #6b7280;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            border-radius: 20px;
+            border: none;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(79, 70, 229, 0.05));
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            width: 100%;
+            justify-content: flex-start;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-action-btn:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            transform: translateX(8px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+        }
+
+        .session-item {
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(79, 70, 229, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .session-item:hover {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .hero-content {
+                padding: 2rem;
+                text-align: center;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-number {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-3" href="/" style="color: var(--primary);">
+                <i class="fas fa-shopping-cart me-2"></i>BuyTogether
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">Welcome {{ user.email|truncatechars:20 }}</span>
+                <a href="{% url 'realtime:dashboard' %}" class="nav-link">Dashboard</a>
+                <a href="/accounts/logout/" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container dashboard-container" style="margin-top: 80px;">
+        
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-4 fw-bold mb-3">
+                            Start Shopping with Friends
+                            <span class="live-indicator">
+                                <span class="live-dot"></span>
+                                LIVE
+                            </span>
+                        </h1>
+                        <p class="lead mb-4">
+                            Create live shopping sessions, chat with friends, share products in real-time, and make group purchases together. Experience the future of social shopping!
+                        </p>
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="{% url 'realtime:create_session' %}" class="start-shopping-btn">
+                                <i class="fas fa-video"></i>
+                                Start Live Shopping
+                            </a>
+                            <button class="btn btn-outline-light btn-lg" onclick="showJoinModal()">
+                                <i class="fas fa-users me-2"></i>
+                                Join Session
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center d-none d-lg-block">
+                        <i class="fas fa-users-cog" style="font-size: 8rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon chat">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Live Chat</h5>
+                <p class="text-muted">Real-time messaging with friends while shopping together. Share thoughts and opinions instantly.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon voice">
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Voice Communication</h5>
+                <p class="text-muted">Talk with your friends using voice chat during shopping sessions for better coordination.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon share">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Product Sharing</h5>
+                <p class="text-muted">Share products instantly with your shopping group and get real-time feedback from friends.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon group">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Group Purchases</h5>
+                <p class="text-muted">Buy together and get better deals on bulk orders. Save money by shopping as a group!</p>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-4">
+            <!-- Left Sidebar - Profile -->
+            <div class="col-lg-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="mb-4">
+                            <div class="position-relative d-inline-block">
+                                <img src="https://via.placeholder.com/80x80/4f46e5/ffffff?text={{ user.email|slice:':1'|upper }}" 
+                                     alt="Profile" class="rounded-circle border border-3 border-primary">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                                    Online
+                                </span>
+                            </div>
+                            <h6 class="mt-3 mb-1">{{ user.get_full_name|default:user.email }}</h6>
+                            <p class="text-muted small">{{ user.email }}</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'realtime:create_session' %}" class="quick-action-btn" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); color: var(--success);">
+                                <i class="fas fa-video"></i>
+                                <span>Start Live Shopping</span>
+                                <span class="badge bg-success ms-auto">Hot!</span>
+                            </a>
+                            <a href="{% url 'realtime:browse_sessions' %}" class="quick-action-btn">
+                                <i class="fas fa-search"></i>
+                                <span>Browse Sessions</span>
+                            </a>
+                            <a href="/store/" class="quick-action-btn">
+                                <i class="fas fa-store"></i>
+                                <span>Shop Products</span>
+                            </a>
+                            <a href="/orders/" class="quick-action-btn">
+                                <i class="fas fa-box"></i>
+                                <span>My Orders</span>
+                            </a>
+                            <a href="/accounts/profile/" class="quick-action-btn">
+                                <i class="fas fa-user-edit"></i>
+                                <span>Edit Profile</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-6">
+                <!-- Stats Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card stats-card">
+                            <div class="stats-number" data-count="0">0</div>
+                            <div class="stats-label">Total Orders</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stats-card">
+                            <div class="stats-number" data-count="{{ active_sessions.count }}">0</div>
+                            <div class="stats-label">Live Sessions</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stats-card">
+                            <div class="stats-number" data-count="{{ joined_sessions.count }}">0</div>
+                            <div class="stats-label">Joined Sessions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">
+                            <i class="fas fa-rocket text-primary me-2"></i>
+                            Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <a href="{% url 'realtime:create_session' %}" class="btn btn-primary w-100 py-3 rounded-4">
+                                    <i class="fas fa-plus-circle me-2"></i>
+                                    Create Shopping Room
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-success w-100 py-3 rounded-4" onclick="showJoinModal()">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    Join Friends' Room
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{% url 'realtime:browse_sessions' %}" class="btn btn-info w-100 py-3 rounded-4">
+                                    <i class="fas fa-search me-2"></i>
+                                    Browse Live Sessions
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="/store/" class="btn btn-warning w-100 py-3 rounded-4">
+                                    <i class="fas fa-shopping-bag me-2"></i>
+                                    Browse Products
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar - Sessions & Referrals -->
+            <div class="col-lg-3">
+                <!-- Active Sessions -->
+                <div class="card mb-4">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0">
+                            <i class="fas fa-broadcast-tower text-danger me-2"></i>
+                            Your Sessions
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if active_sessions %}
+                            <h6 class="text-success">Hosting:</h6>
+                            {% for session in active_sessions %}
+                                <div class="session-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted">Session ID:</small>
+                                            <div class="fw-bold">{{ session.session_id|truncatechars:12 }}</div>
+                                            <small class="text-muted">{{ session.created_at|timesince }} ago</small>
+                                        </div>
+                                        <div class="d-flex gap-1">
+                                            <a href="{% url 'realtime:live_shopping_room' session.session_id %}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-play"></i>
+                                            </a>
+                                            <a href="{% url 'realtime:end_session' session.session_id %}" class="btn btn-sm btn-danger" onclick="return confirm('End session?')">
+                                                <i class="fas fa-stop"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if joined_sessions %}
+                            <h6 class="text-info mt-3">Joined:</h6>
+                            {% for session in joined_sessions %}
+                                <div class="session-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <small class="text-muted">Host: {{ session.host.email|truncatechars:15 }}</small>
+                                            <div class="fw-bold">{{ session.session_id|truncatechars:12 }}</div>
+                                        </div>
+                                        <div class="d-flex gap-1">
+                                            <a href="{% url 'realtime:live_shopping_room' session.session_id %}" class="btn btn-sm btn-success">
+                                                <i class="fas fa-sign-in-alt"></i>
+                                            </a>
+                                            <a href="{% url 'realtime:leave_session' session.session_id %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-sign-out-alt"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if not active_sessions and not joined_sessions %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-users-slash text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                                <p class="text-muted">No active sessions</p>
+                                <a href="{% url 'realtime:create_session' %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Start New Session
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Referral Program -->
+                <div class="card">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0">
+                            <i class="fas fa-gift text-warning me-2"></i>
+                            Referral Program
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if referral_code %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Your Referral Code:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="{{ referral_code }}" readonly id="refCode">
+                                    <button class="btn btn-outline-secondary" onclick="copyText('refCode', 'Referral code copied!')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Referral Link:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="{{ referral_link }}" readonly id="refLink">
+                                    <button class="btn btn-outline-secondary" onclick="copyText('refLink', 'Referral link copied!')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="badge bg-success fs-6 px-3 py-2">
+                                    <i class="fas fa-users me-1"></i>
+                                    {{ total_referrals }} Referral{{ total_referrals|pluralize }}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted">
+                                <i class="fas fa-gift" style="font-size: 2rem; opacity: 0.3;"></i>
+                                <p class="mt-2">Referral system not available</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Session Modal -->
+    <div class="modal fade" id="joinSessionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-users text-primary me-2"></i>
+                        Join Shopping Session
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="sessionId" class="form-label">Session ID</label>
+                        <input type="text" class="form-control form-control-lg" id="sessionId" 
+                               placeholder="Enter session ID from your friend" required>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Ask your friend to share their session ID with you
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="joinSession()">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Join Session
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Animate numbers on page load
+        function animateNumbers() {
+            const numbers = document.querySelectorAll('.stats-number');
+            numbers.forEach(number => {
+                const target = parseInt(number.getAttribute('data-count'));
+                const duration = 2000;
+                const step = target / (duration / 16);
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += step;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    number.textContent = Math.floor(current);
+                }, 16);
+            });
+        }
+
+        // Copy text function
+        function copyText(elementId, successMessage) {
+            const element = document.getElementById(elementId);
+            element.select();
+            element.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(element.value).then(() => {
+                showToast(successMessage);
+            });
+        }
+
+        // Show join modal
+        function showJoinModal() {
+            const modal = new bootstrap.Modal(document.getElementById('joinSessionModal'));
+            modal.show();
+        }
+
+        // Join session function
+        function joinSession() {
+            const sessionId = document.getElementById('sessionId').value.trim();
+            if (sessionId) {
+                window.location.href = `/realtime/join/${sessionId}/`;
+            } else {
+                showToast('Please enter a valid session ID', 'error');
+            }
+        }
+
+        // Simple toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `position-fixed top-0 start-50 translate-middle-x px-4 py-3 rounded-4 text-white fw-bold`;
+            toast.style.cssText = `
+                z-index: 9999; 
+                margin-top: 20px; 
+                background: ${type === 'success' ? 'linear-gradient(45deg, #10b981, #059669)' : 'linear-gradient(45deg, #ef4444, #dc2626)'};
+                box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            `;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${message}`;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, -20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Handle Enter key in join session modal
+        document.getElementById('sessionId').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                joinSession();
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            animateNumbers();
+        });
+    </script>
+</body>
+</html>

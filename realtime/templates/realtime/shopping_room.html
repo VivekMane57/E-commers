@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuyTogether - Live Shopping Room</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .shopping-room {
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .message {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 15px;
+            max-width: 80%;
+            animation: slideIn 0.3s ease;
+        }
+        .message.own {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .message.other {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        .user-joined {
+            text-align: center;
+            color: #28a745;
+            font-style: italic;
+            margin: 10px 0;
+        }
+        .product-share {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .session-info {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .btn-gradient {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(238, 90, 36, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="shopping-room d-flex">
+        <!-- Sidebar - Session Info -->
+        <div class="col-md-3 p-4">
+            <div class="session-info p-4 h-100">
+                <h4 class="text-center mb-4">
+                    <i class="fas fa-shopping-cart text-primary"></i>
+                    Shopping Session
+                </h4>
+                
+                {% if session %}
+                    <div class="mb-3">
+                        <strong>Session ID:</strong><br>
+                        <code class="fs-6">{{ room_name }}</code>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="copySessionId()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Host:</strong><br>
+                        <span class="badge bg-success">{{ session.host.email }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Participants:</strong><br>
+                        <div id="participants-list">
+                            {% for participant in session.participants.all %}
+                                <span class="badge bg-info me-1 mb-1">{{ participant.email }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <strong>Your Info:</strong><br>
+                    <span class="badge bg-primary">{{ user.email }}</span>
+                    {% if is_host %}
+                        <span class="badge bg-warning">HOST</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{% url 'realtime:dashboard' %}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="fas fa-dashboard"></i> Dashboard
+                    </a>
+                    
+                    {% if is_host %}
+                        <a href="{% url 'realtime:end_session' room_name %}" class="btn btn-danger w-100 mb-2" onclick="return confirm('End this session for everyone?')">
+                            <i class="fas fa-stop"></i> End Session
+                        </a>
+                    {% else %}
+                        <a href="{% url 'realtime:leave_session' room_name %}" class="btn btn-warning w-100 mb-2">
+                            <i class="fas fa-sign-out-alt"></i> Leave Session
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Chat Area -->
+        <div class="col-md-6 p-4">
+            <div class="chat-container p-3 mb-3" id="chat-messages">
+                <div class="text-center text-muted">
+                    <i class="fas fa-comments fa-2x mb-2"></i>
+                    <p>Welcome to the live shopping session!</p>
+                    <p><small>Share products, chat with friends, and shop together!</small></p>
+                </div>
+            </div>
+            
+            <!-- Message Input -->
+            <div class="input-group">
+                <input type="text" class="form-control form-control-lg" id="chat-message-input" 
+                       placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <button class="btn btn-gradient" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+            </div>
+        </div>
+        
+        <!-- Product Sharing Area -->
+        <div class="col-md-3 p-4">
+            <div class="session-info p-4 h-100">
+                <h5 class="text-center mb-4">
+                    <i class="fas fa-share-alt text-success"></i>
+                    Share Products
+                </h5>
+                
+                <div class="mb-3">
+                    <button class="btn btn-success w-100 mb-2" onclick="shareCurrentPage()">
+                        <i class="fas fa-share"></i> Share Current Product
+                    </button>
+                    
+                    <button class="btn btn-outline-success w-100 mb-2" onclick="openStorePage()">
+                        <i class="fas fa-store"></i> Browse Store
+                    </button>
+                </div>
+                
+                <div id="shared-products">
+                    <h6>Recently Shared:</h6>
+                    <div class="text-muted">
+                        <small>Products shared by participants will appear here</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- WebSocket JavaScript -->
+    <script>
+        const roomName = '{{ room_name }}';
+        const userName = '{{ user.email }}';
+        
+        // WebSocket connection
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/shopping/' + roomName + '/'
+        );
+        
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('chat-message-input');
+        
+        // WebSocket message handler
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            
+            if (data.type === 'chat_message') {
+                displayMessage(data.user, data.message, data.timestamp);
+            } else if (data.type === 'user_joined') {
+                displayUserJoined(data.user);
+            } else if (data.type === 'product_share') {
+                displaySharedProduct(data.product, data.user);
+            }
+        };
+        
+        // WebSocket close handler
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+            displaySystemMessage('Connection lost. Please refresh the page.');
+        };
+        
+        // Send message function
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                chatSocket.send(JSON.stringify({
+                    'type': 'chat_message',
+                    'message': message
+                }));
+                messageInput.value = '';
+            }
+        }
+        
+        // Display message in chat
+        function displayMessage(user, message, timestamp) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = user === userName ? 'message own' : 'message other';
+            
+            const time = new Date(timestamp).toLocaleTimeString();
+            messageDiv.innerHTML = `
+                ${user !== userName ? '<small><strong>' + user + '</strong></small><br>' : ''}
+                ${message}
+                <small class="d-block mt-1 opacity-75">${time}</small>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Display user joined notification
+        function displayUserJoined(user) {
+            const joinDiv = document.createElement('div');
+            joinDiv.className = 'user-joined';
+            joinDiv.innerHTML = `<i class="fas fa-user-plus"></i> ${user} joined the session`;
+            chatMessages.appendChild(joinDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Display shared product
+        function displaySharedProduct(product, user) {
+            const productDiv = document.createElement('div');
+            productDiv.className = 'product-share';
+            productDiv.innerHTML = `
+                <strong><i class="fas fa-share-alt"></i> ${user} shared:</strong><br>
+                <div class="mt-2">
+                    <strong>${product.name}</strong><br>
+                    <span class="text-success">$${product.price}</span>
+                    ${product.image ? '<br><img src="' + product.image + '" style="max-width: 100px; border-radius: 5px;" class="mt-2">' : ''}
+                </div>
+            `;
+            chatMessages.appendChild(productDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Display system message
+        function displaySystemMessage(message) {
+            const systemDiv = document.createElement('div');
+            systemDiv.className = 'text-center text-danger my-2';
+            systemDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            chatMessages.appendChild(systemDiv);
+        }
+        
+        // Copy session ID
+        function copySessionId() {
+            navigator.clipboard.writeText('{{ room_name }}').then(() => {
+                alert('Session ID copied! Share it with friends to invite them.');
+            });
+        }
+        
+        // Share current product (placeholder)
+        function shareCurrentPage() {
+            // This would integrate with your product pages
+            const sampleProduct = {
+                name: "Sample Product",
+                price: "99.99",
+                id: 1,
+                image: null
+            };
+            
+            chatSocket.send(JSON.stringify({
+                'type': 'product_share',
+                'product': sampleProduct
+            }));
+        }
+        
+        // Open store page
+        function openStorePage() {
+            window.open('/store/', '_blank');
+        }
+        
+        // Focus message input on load
+        document.addEventListener('DOMContentLoaded', function() {
+            messageInput.focus();
+        });
+    </script>
+</body>
+</html>

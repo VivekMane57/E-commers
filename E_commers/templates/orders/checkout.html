@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Billing Address -->
+    <div class="col-md-8">
+      <h4>Billing Address</h4>
+      <form method="POST" action="{% url 'place_order' %}">
+        {% csrf_token %}
+        
+        {% if errors %}
+        <div class="alert alert-danger">
+          {% for field, error in errors.items %}
+            <p>{{ field|title }}: {{ error }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row">
+          <div class="col-md-6 form-group">
+            <label>First Name*</label>
+            <input type="text" name="first_name" class="form-control" required 
+                   value="{{ request.POST.first_name|default:'' }}">
+          </div>
+          <div class="col-md-6 form-group">
+            <label>Last Name*</label>
+            <input type="text" name="last_name" class="form-control" required
+                   value="{{ request.POST.last_name|default:'' }}">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 form-group">
+            <label>Email*</label>
+            <input type="email" name="email" class="form-control" required
+                   value="{{ request.POST.email|default:'' }}">
+          </div>
+          <div class="col-md-6 form-group">
+            <label>Phone Number</label>
+            <input type="text" name="phone" class="form-control"
+                   value="{{ request.POST.phone|default:'' }}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Address Line 1*</label>
+          <input type="text" name="address_line_1" class="form-control" required
+                 value="{{ request.POST.address_line_1|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Address Line 2</label>
+          <input type="text" name="address_line_2" class="form-control"
+                 value="{{ request.POST.address_line_2|default:'' }}">
+        </div>
+
+        <div class="row">
+          <div class="col-md-4 form-group">
+            <label>City*</label>
+            <input type="text" name="city" class="form-control" required
+                   value="{{ request.POST.city|default:'' }}">
+          </div>
+          <div class="col-md-4 form-group">
+            <label>State*</label>
+            <input type="text" name="state" class="form-control" required
+                   value="{{ request.POST.state|default:'' }}">
+          </div>
+          <div class="col-md-4 form-group">
+            <label>Country*</label>
+            <input type="text" name="country" class="form-control" required
+                   value="{{ request.POST.country|default:'' }}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Order Note</label>
+          <textarea name="order_note" class="form-control" rows="2">{{ request.POST.order_note|default:'' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h5>Your Order</h5>
+          </div>
+          <div class="card-body">
+            <h6>ATX-Jeans</h6>
+            <p>Color: Red | Size: Small</p>
+            <hr>
+            <p>Quantity: 1</p>
+            <p>Price: $100</p>
+            <p>Discount: 30%</p>
+            <hr>
+            <h5>Total: $70</h5>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-primary btn-block">Place Order</button>
+            <a href="{% url 'home' %}" class="btn btn-light btn-block">Continue Shopping</a>
+          </div>
+        </div>
+      </div>
+      </form>
+  </div>
+</div>
+
+{% endblock %}

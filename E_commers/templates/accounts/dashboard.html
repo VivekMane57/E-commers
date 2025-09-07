@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="section-conten padding-y bg">
+  {% include 'includes/alerts.html' %}
+  <div class="container">
+    <div class="row">
+      {% include 'includes/dashboard_sidebar.html' %}
+
+      <main class="col-md-9">
+        <article class="card">
+          <header class="card-header">
+            <strong class="d-inline-block mr-3">Logged in as:</strong>
+            <span>{{ user.get_full_name }}</span>
+          </header>
+
+          <div class="card-body">
+            <div class="row">
+              <!-- Total Orders Card -->
+              <div class="col-md-6 mb-4">
+                <div class="card text-center h-100">
+                  <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Total Orders</h5>
+                    <h4 class="my-3">{{ orders_count }}</h4>
+                    <div class="mt-auto">
+                      <a href="{% url 'accounts:my_orders' %}" class="btn btn-outline-primary">View Orders</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- User Info Card -->
+              <div class="col-md-6 mb-4">
+                <div class="card text-center h-100">
+                  <div class="card-body">
+                    {% if userprofile.profile_picture %}
+                      <img src="{{ userprofile.profile_picture.url }}" 
+                           alt="Profile Picture" 
+                           width="80" 
+                           height="80" 
+                           class="rounded-circle border mb-3">
+                    {% else %}
+                      <img src="{% static 'images/default-user.png' %}" 
+                           alt="Default Profile" 
+                           width="80" 
+                           height="80" 
+                           class="rounded-circle border mb-3">
+                    {% endif %}
+                    <h5 class="mb-1">{{ user.get_full_name }}</h5>
+                    <p class="text-muted mb-1">{{ user.email }}</p>
+                    <p class="text-muted">{{ user.phone_number }}</p>
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-sm btn-outline-secondary">
+                      Edit Profile
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Referral Program Section -->
+            <div class="row mb-4">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title text-center mb-4">Referral Program</h5>
+                    
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label><strong>Your Referral Code:</strong></label>
+                          <div class="input-group">
+                            <input type="text" 
+                                   class="form-control text-center font-weight-bold" 
+                                   value="{{ user.referral_code }}" 
+                                   readonly>
+                            <div class="input-group-append">
+                              <button class="btn btn-outline-secondary copy-btn" 
+                                      data-clipboard-text="{{ user.referral_code }}"
+                                      type="button">
+                                Copy
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label><strong>Share your referral link:</strong></label>
+                          <div class="input-group">
+                            <input type="text" 
+                                   id="refLink" 
+                                   class="form-control" 
+                                   value="{{ referral_link }}" 
+                                   readonly>
+                            <div class="input-group-append">
+                              <button class="btn btn-outline-secondary copy-btn" 
+                                      data-clipboard-text="{{ referral_link }}"
+                                      type="button">
+                                Copy
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {% if user.referred_by %}
+                      <p class="text-center mt-3">
+                        <strong>Referred by:</strong> {{ user.referred_by.get_full_name }} ({{ user.referred_by.email }})
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Referred Users Section -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title text-center mb-4">Users You Referred</h5>
+                    
+                    {% if referred_users %}
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <thead class="thead-light">
+                            <tr>
+                              <th>Name</th>
+                              <th>Email</th>
+                              <th>Join Date</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for ref_user in referred_users %}
+                              <tr>
+                                <td>{{ ref_user.get_full_name }}</td>
+                                <td>{{ ref_user.email }}</td>
+                                <td>{{ ref_user.date_joined|date:"M d, Y" }}</td>
+                                <td>
+                                  <span class="badge badge-success">Active</span>
+                                </td>
+                              </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    {% else %}
+                      <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">You haven't referred any users yet</h5>
+                        <p class="text-muted">Share your referral link to earn rewards!</p>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- Clipboard.js for copy functionality -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+<script>
+  // Initialize clipboard.js
+  new ClipboardJS('.copy-btn');
+
+  // Show tooltip when copied
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const originalText = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      setTimeout(() => {
+        this.innerHTML = originalText;
+      }, 2000);
+    });
+  });
+</script>
+{% endblock %}
+"""

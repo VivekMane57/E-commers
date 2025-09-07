@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section-content padding-y">
+  <div class="container">
+    <h4 class="mb-3">Browse live sessions</h4>
+    {% if sessions %}
+      <ul class="list-group">
+        {% for s in sessions %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <div><b>{{ s.host.email }}</b></div>
+            <small class="text-muted">ID: {{ s.session_id }}</small>
+          </div>
+          <a class="btn btn-sm btn-primary" href="{% url 'realtime:join_session' s.session_id %}">Join</a>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">No sessions to join right now.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

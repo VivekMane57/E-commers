@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="section-content padding-y">
+  <div class="container">
+
+    <div class="mb-4">
+      <h3 class="mb-1">Live Shopping Dashboard</h3>
+      <small class="text-muted">Invite friends, start a live session, and shop together.</small>
+    </div>
+
+    <div class="row">
+      <!-- Left: referral + quick actions -->
+      <div class="col-lg-5">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Your referral</h5>
+            <p class="mb-1"><strong>Referral code:</strong> {{ referral_code|default:"—" }}</p>
+            <label class="small text-muted mb-1">Referral link</label>
+            <input class="form-control" readonly value="{{ referral_link }}">
+            <div class="mt-2">
+              <a class="btn btn-outline-primary btn-sm" href="{{ referral_link }}" target="_blank">Open</a>
+              <button class="btn btn-outline-secondary btn-sm" onclick="navigator.clipboard.writeText('{{ referral_link }}')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Start shopping with friends</h5>
+            <p>Create a live room and share the invite link.</p>
+            <a href="{% url 'realtime:create_session' %}" class="btn btn-primary">
+              Start a live session
+            </a>
+            <a href="{% url 'realtime:browse_sessions' %}" class="btn btn-light">Browse sessions</a>
+          </div>
+        </div>
+
+        {% if referred_users %}
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title">People you referred</h6>
+            <ul class="list-group">
+              {% for u in referred_users %}
+              <li class="list-group-item d-flex justify-content-between">
+                <span>{{ u.get_full_name|default:u.email }}</span>
+                <span class="badge badge-success">Joined</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Right: sessions -->
+      <div class="col-lg-7">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Your active sessions (host)</h5>
+            {% if active_sessions %}
+              <ul class="list-group">
+                {% for s in active_sessions %}
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div><strong>{{ s.session_id }}</strong></div>
+                      <small class="text-muted">Created {{ s.created_at|date:"M d, H:i" }}</small>
+                    </div>
+                    <div>
+                      <a class="btn btn-sm btn-outline-primary" href="{% url 'realtime:shopping_room' s.session_id %}">Open</a>
+                      <a class="btn btn-sm btn-outline-danger" href="{% url 'realtime:end_session' s.session_id %}">End</a>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted mb-0">No active sessions.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Sessions you joined</h5>
+            {% if joined_sessions %}
+              <ul class="list-group">
+                {% for s in joined_sessions %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>{{ s.session_id }}</span>
+                  <div>
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'realtime:shopping_room' s.session_id %}">Open</a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'realtime:leave_session' s.session_id %}">Leave</a>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted mb-0">You haven’t joined any sessions yet.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

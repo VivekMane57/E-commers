@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuyTogether - Live Shopping Room</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #06b6d4;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .live-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .live-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="0,0 1000,0 1000,100"/></svg>');
+            background-size: cover;
+        }
+
+        .live-badge {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 45px rgba(0,0,0,0.15);
+        }
+
+        .product-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px) rotate(1deg);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.05);
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--success);
+            margin-bottom: 0.5rem;
+        }
+
+        .product-rating {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-share {
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            border: none;
+            color: white;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-share:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.3);
+            color: white;
+        }
+
+        .btn-cart {
+            background: linear-gradient(45deg, var(--success), #059669);
+            border: none;
+            color: white;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+            color: white;
+        }
+
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+            animation: slideInMessage 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes slideInMessage {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-message.own {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .chat-message.other {
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            color: #1f2937;
+        }
+
+        .chat-message.system {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+            text-align: center;
+            margin: 0 auto;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        .product-share-card {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 2px solid #10b981;
+            border-radius: 15px;
+            padding: 1rem;
+            margin: 1rem 0;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .voice-controls {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 1.5rem;
+        }
+
+        .voice-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .voice-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .voice-btn.active {
+            animation: pulse-voice 2s infinite;
+        }
+
+        @keyframes pulse-voice {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .voice-btn.call { background: linear-gradient(135deg, var(--success), #059669); }
+        .voice-btn.mute { background: linear-gradient(135deg, var(--danger), #dc2626); }
+        .voice-btn.screen { background: linear-gradient(135deg, var(--warning), #d97706); }
+
+        .video-container {
+            border-radius: 15px;
+            overflow: hidden;
+            background: #1f2937;
+            position: relative;
+        }
+
+        .video-element {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #374151, #1f2937);
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 25px;
+            padding: 8px 20px;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: white;
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .participant-count {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            border: 2px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 8px;
+            padding: 6px 12px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: white;
+            color: var(--primary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .live-header {
+                padding: 1rem;
+            }
+            
+            .chat-container {
+                height: 300px;
+            }
+            
+            .voice-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Custom scrollbar */
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: rgba(79, 70, 229, 0.3);
+            border-radius: 10px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(79, 70, 229, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-3">
+        <!-- Live Shopping Header -->
+        <div class="live-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-3">
+                        <h4 class="mb-0 fw-bold">
+                            <i class="fas fa-video me-2"></i>
+                            Live Shopping Session
+                        </h4>
+                        <div class="live-badge">
+                            <span class="live-dot"></span>
+                            LIVE
+                        </div>
+                    </div>
+                    <p class="mb-0 opacity-75 mt-1">Shop together with friends in real-time</p>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <div class="d-flex flex-column align-items-md-end gap-2">
+                        <div class="participant-count">
+                            <i class="fas fa-users me-2"></i>
+                            <span id="participantCount">{{ participant_count }}</span> online
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <div class="d-flex align-items-center gap-2">
+                                <small>Session:</small>
+                                <input type="text" class="form-control form-control-sm" 
+                                       style="width: 200px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;" 
+                                       value="{{ room_name }}" readonly id="sessionId">
+                                <button class="copy-btn" onclick="copySessionId()">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-light" onclick="shareInviteLink()">
+                                <i class="fas fa-share-alt me-1"></i>
+                                Share Invite
+                            </button>
+                            <a href="{% url 'realtime:dashboard' %}" class="btn btn-sm btn-light">
+                                <i class="fas fa-home me-1"></i>
+                                Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Products Section -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-shopping-bag text-primary me-2"></i>
+                                Featured Products
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <button class="filter-btn active" onclick="filterProducts('all')" data-filter="all">
+                                    All
+                                </button>
+                                <button class="filter-btn" onclick="filterProducts('Electronics')" data-filter="Electronics">
+                                    Electronics
+                                </button>
+                                <button class="filter-btn" onclick="filterProducts('Clothing')" data-filter="Clothing">
+                                    Clothing
+                                </button>
+                                <button class="filter-btn" onclick="filterProducts('Books')" data-filter="Books">
+                                    Books
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row g-4" id="productsGrid">
+                            {% for product in products %}
+                            <div class="col-md-6 col-xl-4 product-item" data-category="{{ product.category }}">
+                                <div class="card product-card h-100">
+                                    <img src="{{ product.image }}" alt="{{ product.name }}" class="product-image">
+                                    <div class="product-info">
+                                        <h6 class="product-name">{{ product.name }}</h6>
+                                        <div class="product-price">${{ product.price }}</div>
+                                        <div class="product-rating">
+                                            <i class="fas fa-star text-warning"></i>
+                                            {{ product.rating }} ({{ product.reviews }} reviews)
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-cart btn-sm flex-fill" onclick="addToCart('{{ product.id }}', '{{ product.name }}', '{{ product.price }}')">
+                                                <i class="fas fa-cart-plus me-1"></i>
+                                                Add to Cart
+                                            </button>
+                                            <button class="btn btn-share btn-sm" onclick="shareProduct('{{ product.id }}', '{{ product.name|escapejs }}', '{{ product.price }}', '{{ product.image }}', '{{ product.category }}')">
+                                                <i class="fas fa-share-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat & Voice Section -->
+            <div class="col-lg-4">
+                <!-- Chat Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="fas fa-comments text-primary me-2"></i>
+                            Live Chat
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="chat-container" id="chatMessages">
+                            <div class="chat-message system">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Welcome to the live shopping session! Share products and chat with friends.
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="messageInput" 
+                                       placeholder="Type your message..." 
+                                       onkeypress="handleMessageKeyPress(event)">
+                                <button class="btn btn-primary" onclick="sendMessage()">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voice & Video Controls -->
+                <div class="card">
+                    <div class="card-header bg-transparent">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="fas fa-microphone text-success me-2"></i>
+                            Voice & Video
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Voice Controls -->
+                        <div class="text-center mb-4">
+                            <div class="d-flex justify-content-center gap-3">
+                                <button class="voice-btn call" onclick="toggleCall()" id="callBtn" title="Start/End Call">
+                                    <i class="fas fa-phone"></i>
+                                </button>
+                                <button class="voice-btn mute" onclick="toggleMute()" id="muteBtn" title="Mute/Unmute">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <button class="voice-btn screen" onclick="shareScreen()" id="screenBtn" title="Share Screen">
+                                    <i class="fas fa-desktop"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                Click to start voice communication
+                            </small>
+                        </div>
+
+                        <!-- Video Display -->
+                        <div class="video-container mb-3">
+                            <video id="localVideo" class="video-element" autoplay muted playsinline></video>
+                            <div class="position-absolute bottom-0 start-0 p-2">
+                                <small class="badge bg-dark">You</small>
+                            </div>
+                        </div>
+
+                        <div class="video-container">
+                            <video id="remoteVideo" class="video-element" autoplay playsinline></video>
+                            <div class="position-absolute bottom-0 start-0 p-2">
+                                <small class="badge bg-dark">Friend</small>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                WebRTC voice/video ready. Click call button to connect with friends.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // WebSocket Configuration
+        const roomName = '{{ room_name }}';
+        const userName = '{{ user.email }}';
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsUrl = `${wsScheme}://${window.location.host}/ws/shopping/${roomName}/`;
+        
+        let chatSocket;
+        let isCallActive = false;
+        let isMuted = false;
+        let localStream = null;
+        let peerConnection = null;
+
+        // Initialize WebSocket connection
+        function initializeWebSocket() {
+            chatSocket = new WebSocket(wsUrl);
+            
+            chatSocket.onopen = function(e) {
+                addSystemMessage('Connected to live session');
+                console.log('WebSocket connected');
+            };
+            
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                handleWebSocketMessage(data);
+            };
+            
+            chatSocket.onclose = function(e) {
+                addSystemMessage('Disconnected from session. Reconnecting...');
+                console.log('WebSocket disconnected');
+                // Attempt to reconnect after 3 seconds
+                setTimeout(initializeWebSocket, 3000);
+            };
+            
+            chatSocket.onerror = function(e) {
+                addSystemMessage('Connection error occurred');
+                console.error('WebSocket error:', e);
+            };
+        }
+
+        // Handle WebSocket messages
+        function handleWebSocketMessage(data) {
+            switch(data.type) {
+                case 'chat_message':
+                    addChatMessage(data.user, data.message, data.user === userName);
+                    break;
+                case 'product_share':
+                    addProductShareMessage(data.user, data.product);
+                    break;
+                case 'user_joined':
+                    addSystemMessage(`${data.user} joined the session`);
+                    updateParticipantCount(1);
+                    break;
+                case 'user_left':
+                    addSystemMessage(`${data.user} left the session`);
+                    updateParticipantCount(-1);
+                    break;
+                default:
+                    console.log('Unknown message type:', data.type);
+            }
+        }
+
+        // Send message via WebSocket
+        function sendWebSocketMessage(type, data) {
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    type: type,
+                    ...data,
+                    timestamp: Date.now()
+                }));
+            } else {
+                addSystemMessage('Connection lost. Please refresh the page.');
+            }
+        }
+
+        // Chat Functions
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                sendWebSocketMessage('chat_message', { message: message });
+                input.value = '';
+            }
+        }
+
+        function handleMessageKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function addChatMessage(user, message, isOwn = false) {
+            const chatContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isOwn ? 'own' : 'other'}`;
+            
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            messageDiv.innerHTML = `
+                ${!isOwn ? `<div class="fw-bold mb-1">${escapeHtml(user)}</div>` : ''}
+                <div>${escapeHtml(message)}</div>
+                <small class="opacity-75 d-block mt-1">${time}</small>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addSystemMessage(message) {
+            const chatContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message system';
+            messageDiv.innerHTML = `<i class="fas fa-info-circle me-2"></i>${escapeHtml(message)}`;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addProductShareMessage(user, product) {
+            const chatContainer = document.getElementById('chatMessages');
+            const shareDiv = document.createElement('div');
+            shareDiv.className = 'product-share-card';
+            
+            shareDiv.innerHTML = `
+                <div class="d-flex align-items-center gap-3">
+                    <img src="${product.image}" alt="${escapeHtml(product.name)}" 
+                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">
+                    <div class="flex-grow-1">
+                        <div class="fw-bold text-success mb-1">
+                            <i class="fas fa-share-alt me-2"></i>${escapeHtml(user)} shared:
+                        </div>
+                        <h6 class="mb-1">${escapeHtml(product.name)}</h6>
+                        <div class="fw-bold text-success">${product.price}</div>
+                        <small class="text-muted">${product.category || ''}</small>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.appendChild(shareDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Product Functions
+        function shareProduct(id, name, price, image, category) {
+            const product = { id, name, price, image, category };
+            sendWebSocketMessage('product_share', { product: product });
+            
+            // Add to own chat immediately
+            addProductShareMessage('You', product);
+        }
+
+        function addToCart(productId, productName, productPrice) {
+            // Simulate add to cart
+            addSystemMessage(`Added "${productName}" to cart (${productPrice})`);
+            
+            // Here you would typically make an AJAX call to add to cart
+            // fetch('/cart/add/', { method: 'POST', ... })
+        }
+
+        function filterProducts(category) {
+            const products = document.querySelectorAll('.product-item');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            // Update filter button states
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-filter="${category}"]`).classList.add('active');
+            
+            // Show/hide products
+            products.forEach(product => {
+                const productCategory = product.getAttribute('data-category');
+                if (category === 'all' || productCategory === category) {
+                    product.style.display = 'block';
+                    setTimeout(() => {
+                        product.style.opacity = '1';
+                        product.style.transform = 'translateY(0)';
+                    }, 100);
+                } else {
+                    product.style.opacity = '0';
+                    product.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        product.style.display = 'none';
+                    }, 300);
+                }
+            });
+        }
+
+        // Voice & Video Functions
+        async function toggleCall() {
+            const callBtn = document.getElementById('callBtn');
+            
+            if (!isCallActive) {
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: true
+                    });
+                    
+                    document.getElementById('localVideo').srcObject = localStream;
+                    callBtn.classList.add('active');
+                    isCallActive = true;
+                    
+                    addSystemMessage('Call started. Waiting for others to join...');
+                    
+                    // Initialize peer connection for WebRTC
+                    initializePeerConnection();
+                    
+                } catch (error) {
+                    addSystemMessage('Could not access camera/microphone: ' + error.message);
+                    console.error('Media access error:', error);
+                }
+            } else {
+                endCall();
+            }
+        }
+
+        function toggleMute() {
+            const muteBtn = document.getElementById('muteBtn');
+            const icon = muteBtn.querySelector('i');
+            
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    isMuted = !audioTrack.enabled;
+                    
+                    if (isMuted) {
+                        icon.className = 'fas fa-microphone-slash';
+                        muteBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                        addSystemMessage('Microphone muted');
+                    } else {
+                        icon.className = 'fas fa-microphone';
+                        muteBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                        addSystemMessage('Microphone unmuted');
+                    }
+                }
+            } else {
+                addSystemMessage('Please start a call first');
+            }
+        }
+
+        async function shareScreen() {
+            const screenBtn = document.getElementById('screenBtn');
+            
+            try {
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: true
+                });
+                
+                document.getElementById('localVideo').srcObject = screenStream;
+                screenBtn.classList.add('active');
+                
+                addSystemMessage('Screen sharing started');
+                
+                screenStream.getVideoTracks()[0].onended = () => {
+                    screenBtn.classList.remove('active');
+                    addSystemMessage('Screen sharing stopped');
+                    
+                    // Return to camera if call is active
+                    if (isCallActive && localStream) {
+                        document.getElementById('localVideo').srcObject = localStream;
+                    }
+                };
+                
+            } catch (error) {
+                addSystemMessage('Screen sharing cancelled or failed');
+                console.error('Screen share error:', error);
+            }
+        }
+
+        function initializePeerConnection() {
+            // Basic WebRTC setup (you can expand this with STUN/TURN servers)
+            const configuration = {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' }
+                ]
+            };
+            
+            peerConnection = new RTCPeerConnection(configuration);
+            
+            // Add local stream to peer connection
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+            }
+            
+            // Handle remote stream
+            peerConnection.ontrack = (event) => {
+                document.getElementById('remoteVideo').srcObject = event.streams[0];
+                addSystemMessage('Friend joined the call');
+            };
+            
+            // Handle ICE candidates (you'd send these via WebSocket in a real implementation)
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    // In a real implementation, send this candidate to the other peer via WebSocket
+                    console.log('ICE candidate:', event.candidate);
+                }
+            };
+        }
+
+        function endCall() {
+            const callBtn = document.getElementById('callBtn');
+            const muteBtn = document.getElementById('muteBtn');
+            
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            
+            document.getElementById('localVideo').srcObject = null;
+            document.getElementById('remoteVideo').srcObject = null;
+            
+            callBtn.classList.remove('active');
+            muteBtn.classList.remove('active');
+            muteBtn.querySelector('i').className = 'fas fa-microphone';
+            
+            isCallActive = false;
+            isMuted = false;
+            
+            addSystemMessage('Call ended');
+        }
+
+        // Utility Functions
+        function updateParticipantCount(delta) {
+            const countElement = document.getElementById('participantCount');
+            const currentCount = parseInt(countElement.textContent);
+            const newCount = Math.max(1, currentCount + delta);
+            countElement.textContent = newCount;
+        }
+
+        function copySessionId() {
+            const sessionInput = document.getElementById('sessionId');
+            sessionInput.select();
+            document.execCommand('copy');
+            
+            showToast('Session ID copied to clipboard!');
+        }
+
+        function shareInviteLink() {
+            const inviteLink = `${window.location.origin}/realtime/join/${roomName}/`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Join my Live Shopping Session',
+                    text: 'Come shop with me in real-time!',
+                    url: inviteLink
+                });
+            } else {
+                navigator.clipboard.writeText(inviteLink).then(() => {
+                    showToast('Invite link copied to clipboard!');
+                });
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `position-fixed top-0 start-50 translate-middle-x px-4 py-3 rounded-4 text-white fw-bold`;
+            toast.style.cssText = `
+                z-index: 9999; 
+                margin-top: 20px; 
+                background: ${type === 'success' ? 'linear-gradient(45deg, #10b981, #059669)' : 'linear-gradient(45deg, #ef4444, #dc2626)'};
+                box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            `;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${message}`;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translate(-50%, -20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWebSocket();
+            
+            // Focus message input
+            document.getElementById('messageInput').focus();
+            
+            console.log('Live Shopping Room initialized');
+            console.log('WebSocket URL:', wsUrl);
+            console.log('Room Name:', roomName);
+            console.log('User:', userName);
+        });
+
+        // Cleanup when page unloads
+        window.addEventListener('beforeunload', function() {
+            if (chatSocket) {
+                chatSocket.close();
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+        });
+    </script>
+</body>
+</html>
