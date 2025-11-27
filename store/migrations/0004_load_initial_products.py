@@ -1,71 +1,42 @@
 from django.db import migrations
-from django.conf import settings
-from pathlib import Path
 import json
+import os
 
 
 def load_initial_products(apps, schema_editor):
-    Category = apps.get_model("category", "Category")
     Product = apps.get_model("store", "Product")
+    Category = apps.get_model("category", "Category")
 
-    # Path to the JSON fixture (you created this earlier)
-    fixture_path = Path(settings.BASE_DIR) / "initial_products.json"
+    file_path = os.path.join(os.path.dirname(__file__), "../../initial_products.json")
 
-    if not fixture_path.exists():
-        # If file is missing, do nothing (avoid deployment crash)
-        return
-
-    with open(fixture_path, "r", encoding="utf-8") as f:
+    # Read JSON with proper encoding
+    with open(file_path, encoding="utf-8") as f:
         data = json.load(f)
 
     for entry in data:
-        model = entry.get("model")
-        pk = entry.get("pk")
-        fields = entry.get("fields", {})
+        model = entry["model"]
+        fields = entry["fields"]
 
-        # Load categories first
         if model == "category.category":
             Category.objects.update_or_create(
-                pk=pk,
-                defaults=fields,
+                id=entry["pk"], defaults=fields
             )
 
-    # Second pass: load products (now categories exist)
-    for entry in data:
-        model = entry.get("model")
-        pk = entry.get("pk")
-        fields = entry.get("fields", {})
-
-        if model == "store.product":
-            category_id = fields.pop("category", None)
-            category = None
-            if category_id is not None:
-                category = Category.objects.filter(pk=category_id).first()
-            if not category:
-                continue
+        elif model == "store.product":
+            category_id = fields.pop("category")
+            category = Category.objects.get(id=category_id)
 
             Product.objects.update_or_create(
-                pk=pk,
-                defaults={**fields, "category": category},
+                id=entry["pk"], defaults={**fields, "category": category}
             )
-
-
-def unload_initial_products(apps, schema_editor):
-    # Reverse migration (optional cleanup)
-    Product = apps.get_model("store", "Product")
-    Product.objects.all().delete()
-    # We keep categories; remove them too if you really want:
-    # Category = apps.get_model("category", "Category")
-    # Category.objects.all().delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("store", "0003_reviewrating"),  # keep this as in your screenshot
-        ("category", "0001_initial"),
+        ('store', '0003_reviewrating'),
     ]
 
     operations = [
-        migrations.RunPython(load_initial_products, reverse_code=unload_initial_products),
+        migrations.RunPython(load_initial_products),
     ]
