@@ -40,12 +40,8 @@
 
 
 
-
 from django.urls import path
 from . import views
-
-# 🔴 REMOVE this line:
-# app_name = "accounts"  # Namespace declaration
 
 urlpatterns = [
     # ===== AUTHENTICATION =====
