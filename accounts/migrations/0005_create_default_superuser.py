@@ -1,37 +1,56 @@
 from django.db import migrations
-from django.contrib.auth.hashers import make_password
+import json
+import os
+from django.conf import settings
 
 
-def create_default_superuser(apps, schema_editor):
-    Account = apps.get_model("accounts", "Account")
+def load_initial_products(apps, schema_editor):
+    Category = apps.get_model("category", "Category")
+    Product = apps.get_model("store", "Product")
 
-    # Avoid duplicate creation
-    if Account.objects.filter(email="admin@buytogether.in").exists():
+    file_path = os.path.join(settings.BASE_DIR, "initial_products.json")
+
+    # Check file exists
+    if not os.path.exists(file_path):
+        print("⚠️ initial_products.json not found. Skipping import.")
         return
 
-    # Create the user with hashed password
-    user = Account(
-        first_name="Admin",
-        last_name="User",
-        email="admin@buytogether.in",
-        username="admin",
-        password=make_password("Admin@1234"),  # hashing here
-    )
+    with open(file_path, encoding="utf-8") as f:
+        data = json.load(f)
 
-    # Assign role flags only if they exist
-    for flag in ["is_superuser", "is_staff", "is_admin", "is_superadmin", "is_active"]:
-        if hasattr(user, flag):
-            setattr(user, flag, True)
+    for item in data:
+        model = item["model"]
 
-    user.save()
+        if model == "category.category":
+            Category.objects.update_or_create(
+                id=item["pk"],
+                defaults=item["fields"]
+            )
+
+        elif model == "store.product":
+            Product.objects.update_or_create(
+                id=item["pk"],
+                defaults=item["fields"]
+            )
+
+    print("✅ Categories & Products loaded successfully!")
+
+
+def reverse_data(apps, schema_editor):
+    """Deletes all imported data if migration is rolled back."""
+    Category = apps.get_model("category", "Category")
+    Product = apps.get_model("store", "Product")
+    Product.objects.all().delete()
+    Category.objects.all().delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("accounts", "0004_alter_account_last_login_alter_account_referral_code"),
+        ("store", "0003_reviewrating"),
+        ("category", "0001_initial"),
     ]
 
     operations = [
-        migrations.RunPython(create_default_superuser),
+        migrations.RunPython(load_initial_products, reverse_data),
     ]

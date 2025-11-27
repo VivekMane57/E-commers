@@ -232,12 +232,18 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.getenv("SECRET_KEY", "local-secret-insecure")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
-# In production you can replace "*" with your domains
-ALLOWED_HOSTS = ["*"]
+# Allowed Hosts
+ALLOWED_HOSTS = [
+    "*",
+    "127.0.0.1",
+    "localhost",
+    "buytogether-1.onrender.com",
+]
 
-# ✅ CSRF & HTTPS for Render
+# CSRF Trusted
 CSRF_TRUSTED_ORIGINS = [
     "https://buytogether-1.onrender.com",
+    "https://*.onrender.com",
 ]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -280,7 +286,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 # ------------------------------------------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # static files on Render
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # for Render static files
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -319,23 +325,28 @@ TEMPLATES = [
 ]
 
 # ------------------------------------------------------------------
-# ASGI & WSGI
+# ASGI + WSGI
 # ------------------------------------------------------------------
 ASGI_APPLICATION = "E_commers.asgi.application"
 WSGI_APPLICATION = "E_commers.wsgi.application"
 
 # ------------------------------------------------------------------
-# Database (Postgres on Render, SQLite locally)
+# Database / Render PostgreSQL + Local SQLite
 # ------------------------------------------------------------------
-DATABASES = {
-    "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
-        conn_max_age=600,
-    )
-}
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.parse(os.getenv("DATABASE_URL"), conn_max_age=600)
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # ------------------------------------------------------------------
-# Channels WebSocket Layer
+# Channels Layer
 # ------------------------------------------------------------------
 CHANNEL_LAYERS = {
     "default": {
@@ -354,7 +365,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # ------------------------------------------------------------------
-# Password Validation
+# Validation
 # ------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -364,7 +375,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ------------------------------------------------------------------
-# Localization
+# Internationalization
 # ------------------------------------------------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
@@ -377,6 +388,8 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "E_commers/static"]
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -404,7 +417,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = f"BuyTogether <{EMAIL_HOST_USER}>"
-
 # ------------------------------------------------------------------
 # Razorpay Keys
 # ------------------------------------------------------------------
