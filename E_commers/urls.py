@@ -1,3 +1,5 @@
+# E_commers/urls.py
+
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -7,7 +9,7 @@ from . import views
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # Homepage
+    # Home page
     path("", views.home, name="home"),
 
     # Apps
@@ -15,8 +17,8 @@ urlpatterns = [
     path("store/", include("store.urls")),
     path("cart/", include("carts.urls")),
     path("orders/", include("orders.urls")),
-    path("realtime/", include("realtime.urls")),
+    path("realtime/", include("realtime.urls")),  # BuyTogether features
 ]
 
-# ✅ always serve media files (for this demo project)
+# ❗ Serve media files (product images) even when DEBUG = False (Render)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
