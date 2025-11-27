@@ -15,8 +15,8 @@ urlpatterns = [
     path("store/", include("store.urls")),
     path("cart/", include("carts.urls")),
     path("orders/", include("orders.urls")),
-    path("realtime/", include("realtime.urls")),  # BuyTogether features
+    path("realtime/", include("realtime.urls")),
 ]
 
-# ✅ Serve MEDIA files (product images) in ALL environments (local + Render)
+# ✅ always serve media files (for this demo project)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
