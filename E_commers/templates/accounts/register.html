@@ -5,8 +5,10 @@
     <article class="card-body">
       {% include "includes/alerts.html" %}
       <header class="mb-4"><h4 class="card-title">Sign up</h4></header>
+
       <form action="{% url 'accounts:register' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+
         <div class="form-row">
           <div class="col form-group">
             <label>First name</label>
@@ -17,6 +19,7 @@
             {{ form.last_name }}
           </div>
         </div>
+
         <div class="form-row">
           <div class="form-group col-md-6">
             <label>Email Address</label>
@@ -27,6 +30,7 @@
             {{ form.phone_number }}
           </div>
         </div>
+
         <div class="form-row">
           <div class="form-group col-md-6">
             <label>Create password</label>
@@ -37,18 +41,37 @@
             {{ form.confirm_password }}
           </div>
         </div>
+
         <div class="form-group">
           <label>Referral Code (optional)</label>
           {{ form.referral_code }}
         </div>
+
         <div class="form-group">
           <button type="submit" class="btn btn-primary btn-block">Register</button>
         </div>
-        {{ form.email.errors }}
-        {{ form.non_field_errors }}
+
+        {# Show all validation errors #}
+        {% if form.errors %}
+          <div class="alert alert-danger mt-3">
+            <ul class="mb-0">
+              {% for field in form %}
+                {% for error in field.errors %}
+                  <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+              {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
       </form>
     </article>
   </div>
-  <p class="text-center mt-4">Have an account? <a href="{% url 'accounts:login' %}">Log In</a></p>
+
+  <p class="text-center mt-4">
+    Have an account? <a href="{% url 'accounts:login' %}">Log In</a>
+  </p>
 </section>
 {% endblock %}
