@@ -41,11 +41,11 @@
 
 
 
-
 from django.urls import path
 from . import views
 
-app_name = "accounts"  # Namespace declaration
+# 🔴 REMOVE this line:
+# app_name = "accounts"  # Namespace declaration
 
 urlpatterns = [
     # ===== AUTHENTICATION =====
