@@ -18,7 +18,19 @@ load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "local-secret-insecure")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
-ALLOWED_HOSTS = ["*"]  # Render will use this
+
+# ✅ Better ALLOWED_HOSTS
+ALLOWED_HOSTS = [
+    "buytogether-1.onrender.com",
+    "127.0.0.1",
+    "localhost",
+]
+
+# ✅ VERY IMPORTANT for 403 CSRF on Render (HTTPS)
+CSRF_TRUSTED_ORIGINS = [
+    "https://buytogether-1.onrender.com",
+    "https://*.onrender.com",
+]
 
 # ------------------------------------------------------------------
 # Installed Apps
@@ -156,10 +168,20 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "E_commers/static"]
 
+# ✅ Tell Django to use Whitenoise's storage in production
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ------------------------------------------------------------------
+# Security cookies (good for HTTPS on Render)
+# ------------------------------------------------------------------
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # ------------------------------------------------------------------
 # Messages
@@ -186,6 +208,5 @@ DEFAULT_FROM_EMAIL = f"BuyTogether <{EMAIL_HOST_USER}>"
 # ------------------------------------------------------------------
 # Razorpay Keys
 # ------------------------------------------------------------------
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID","rzp_test_hY56idBaXn2QQL")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET","EssUCIZ4LHWzxDRF6J4U5azO")
-
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_hY56idBaXn2QQL")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "EssUCIZ4LHWzxDRF6J4U5azO")
