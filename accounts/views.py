@@ -753,28 +753,20 @@ def get_razorpay_client():
 
 
 # ====================== AUTHENTICATION VIEWS ======================
-def register(request):
-    """
-    User registration view with referral system.
-    Handles:
-      - form validation
-      - user + profile creation
-      - referral code
-      - activation email
-    """
-    if request.method == "POST":
-        form = RegistrationForm(request.POST)
+# accounts/views.py
 
+def register(request):
+    """User registration view with referral system"""
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    first_name = form.cleaned_data["first_name"]
-                    last_name = form.cleaned_data["last_name"]
-                    phone_number = form.cleaned_data["phone_number"]
-                    email = form.cleaned_data["email"]
-                    password = form.cleaned_data["password"]
-                    referral_code = form.cleaned_data.get("referral_code")
-
+                    first_name = form.cleaned_data['first_name']
+                    last_name = form.cleaned_data['last_name']
+                    phone_number = form.cleaned_data['phone_number']
+                    email = form.cleaned_data['email']
+                    password = form.cleaned_data['password']
                     username = email.split("@")[0]
 
                     # Create user
@@ -787,68 +779,52 @@ def register(request):
                     )
                     user.phone_number = phone_number
 
-                    # Referral
-                    if referral_code:
+                    # ✅ AUTO-ACTIVATE USER (important line)
+                    user.is_active = True
+
+                    # Handle referral code
+                    ref_code = form.cleaned_data.get('referral_code')
+                    if ref_code:
                         try:
-                            referring_user = Account.objects.get(
-                                referral_code=referral_code
-                            )
+                            referring_user = Account.objects.get(referral_code=ref_code)
                             user.referred_by = referring_user
                         except Account.DoesNotExist:
-                            # Form already validates but just in case
-                            messages.warning(request, "Invalid referral code.")
+                            messages.warning(request, 'Invalid referral code')
+
                     user.save()
 
-                    # Profile
-                    UserProfile.objects.get_or_create(user=user)
-
-                    # Activation email (non-blocking)
+                    # (Optional) you can keep or remove this email part
+                    # If email config is not ready, it's okay to skip it
+                    """
                     try:
                         current_site = get_current_site(request)
-                        mail_subject = "Activate your account"
-                        message = render_to_string(
-                            "accounts/account_verification_email.html",
-                            {
-                                "user": user,
-                                "domain": current_site.domain,
-                                "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-                                "token": default_token_generator.make_token(user),
-                            },
-                        )
-                        email_message = EmailMessage(
-                            mail_subject,
-                            message,
-                            to=[email],
-                        )
-                        email_message.send()
-                        messages.success(
-                            request,
-                            "Registration successful! Please check your email to activate your account.",
-                        )
-                    except Exception:
-                        messages.warning(
-                            request,
-                            "Account created but verification email failed to send.",
-                        )
+                        mail_subject = 'Activate your account'
+                        message = render_to_string('accounts/account_verification_email.html', {
+                            'user': user,
+                            'domain': current_site.domain,
+                            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                            'token': default_token_generator.make_token(user),
+                        })
+                        EmailMessage(mail_subject, message, to=[email]).send()
+                        messages.success(request, 'Registration successful!')
+                    except Exception as e:
+                        messages.warning(request, 'Account created but verification email failed.')
+                    """
 
-                    # Always redirect after successful POST
-                    return redirect("accounts:login")
+                    messages.success(request, 'Registration successful! You can now log in.')
+                    return redirect('accounts:login')
 
             except Exception as e:
-                messages.error(request, f"Registration failed: {str(e)}")
+                messages.error(request, f'Registration failed: {str(e)}')
 
-        else:
-            messages.error(request, "Please correct the errors below.")
     else:
-        # GET request -> show empty form (maybe with referral)
-        initial_data = {}
-        ref_code = request.GET.get("ref")
+        form = RegistrationForm()
+        ref_code = request.GET.get('ref')
         if ref_code:
-            initial_data["referral_code"] = ref_code
+            form.fields['referral_code'].initial = ref_code
 
-        form = RegistrationForm(initial=initial_data)
+    return render(request, 'accounts/register.html', {'form': form})
 
-    return render(request, "accounts/register.html", {"form": form})
 
 
 def login(request):
