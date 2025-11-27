@@ -9,7 +9,6 @@ def load_initial_products(apps, schema_editor):
 
     file_path = os.path.join(os.path.dirname(__file__), "../../initial_products.json")
 
-    # Read JSON with proper encoding
     with open(file_path, encoding="utf-8") as f:
         data = json.load(f)
 
@@ -34,7 +33,7 @@ def load_initial_products(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('store', '0003_reviewrating'),
+        ("store", "0003_reviewrating"),
     ]
 
     operations = [
